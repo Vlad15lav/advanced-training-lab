@@ -30,6 +30,8 @@ def plot_sample(image, label=None):
             f"Sign: {label}", fontsize=14, fontweight="bold", pad=10
         )
 
+    print("Результат сохранен в test_sample.png")
+    plt.savefig("test_sample.png", bbox_inches="tight", dpi=300)
     plt.show()
 
 
