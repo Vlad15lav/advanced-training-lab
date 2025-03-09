@@ -134,8 +134,8 @@ class SignConvNetwork(LightningModule):
         Args:
             stage (str): тип множества ('train', 'valid', 'test')
         """
-        preds = torch.cat(self.all_step_preds).numpy()
-        labels = torch.cat(self.all_step_labels).numpy()
+        preds = torch.cat(self.all_step_preds).cpu().numpy()
+        labels = torch.cat(self.all_step_labels).cpu().numpy()
 
         self.log(
             name=f"{stage}/F1-Score",
