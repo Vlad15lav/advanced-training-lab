@@ -1,9 +1,9 @@
 import os
 
-from src.data.sign_language import SignLanguageModule
-from src.models.sign_network import SignConvNetwork
+from data.sign_language import SignLanguageModule
+from models.sign_network import SignConvNetwork
 
-from src.test.inference import test_sample
+from test.inference import test_sample
 
 
 CONFIG = {
@@ -30,7 +30,7 @@ def main():
 
     dataset.setup("test")
     model = SignConvNetwork.load_from_checkpoint(
-        os.path.join("./models/", CONFIG["best_model_name"] + ".ckpt"),
+        os.path.join("../models/", CONFIG["best_model_name"] + ".ckpt"),
         config=CONFIG
     )
     print("Веса загружены!")

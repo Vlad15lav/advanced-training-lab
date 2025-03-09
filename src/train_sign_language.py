@@ -1,7 +1,8 @@
 import click
+import torch
 
-from src.data.sign_language import SignLanguageModule
-from src.models.sign_network import SignConvNetwork
+from data.sign_language import SignLanguageModule
+from models.sign_network import SignConvNetwork
 
 from lightning import seed_everything
 from lightning import Trainer
@@ -32,7 +33,7 @@ CONFIG = {
     "early_stopping_patience": 5,
     "best_model_name": "sign-language-model",
 
-    "device": "cpu",  # ""cuda" if torch.cuda.is_available() else "cpu",
+    "device": "cpu" if torch.cuda.is_available() else "cpu",
     "num_workers": 2,
     "random_seed": 2025
 }
@@ -77,7 +78,7 @@ def train_model(model, dataset, fast_dev_run: bool, config: dict):
                 save_top_k=1,
                 monitor="valid/F1-Score",
                 mode="max",
-                dirpath="./models/",
+                dirpath="../models/",
                 filename=config["best_model_name"],
                 save_weights_only=True
             )
@@ -87,12 +88,13 @@ def train_model(model, dataset, fast_dev_run: bool, config: dict):
     trainer = Trainer(
         max_epochs=config["epochs"],
         log_every_n_steps=config["log_every_n_steps"],
+        default_root_dir='../',
         callbacks=callback_list
     )
 
     print("Тренировка модели...")
     trainer.fit(model, datamodule=dataset)
-    print("Модель обучена! Веса сохранены в ./models")
+    print("Модель обучена! Веса сохранены в advanced-training-lab/models")
 
 
 @click.command()
