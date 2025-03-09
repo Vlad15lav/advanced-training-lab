@@ -23,7 +23,7 @@ TEST_DATASET_LINK = (
     "https://github.com/a-milenkin/ml_instruments"
     "/raw/refs/heads/main/data/sign_mnist_test.csv.zip"
 )
-DATA_DIR = os.path.join(os.getcwd(), "../data/raw")
+DATA_DIR = os.path.normpath(os.path.join(os.getcwd(), "../data/raw"))
 ZIP_PATH = os.path.join(DATA_DIR, "dataset.zip")
 
 
