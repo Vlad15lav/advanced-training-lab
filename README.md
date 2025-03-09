@@ -1,4 +1,7 @@
 # 🚀 Advanced Training Lab  
+
+![PyTorch Versus](images/pytorch_versus.webp)
+
 ## 📌 Описание  
 
 **Advanced Training Lab** — это проект, созданный для демонстрации возможностей **PyTorch Lightning** ⚡ и **ClearML** 🛠️ при обучении моделей машинного обучения и глубокого обучения.  
@@ -38,4 +41,6 @@ python src/demo_sign_language.py
 
 ## 🔗 Полезные ссылки
 
+- [Welcome to ⚡ PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/)
+- [The Infrastructure Platform For AI Builders](https://clear.ml/)
 - [🤖 Машинное обучение с помощью ClearML и Pytorch Lightning ⚡](https://stepik.org/course/214389)
