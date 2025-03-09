@@ -1,6 +1,6 @@
 # 🚀 Advanced Training Lab  
 
-![PyTorch Versus](images/pytorch_versus.webp)
+![PyTorch Versus](images/pytorch_versus.webp)*DALLE об противостоянии PyTorch и Lightning*
 
 ## 📌 Описание  
 
