@@ -33,7 +33,7 @@ CONFIG = {
     "early_stopping_patience": 5,
     "best_model_name": "sign-language-model",
 
-    "device": "cpu" if torch.cuda.is_available() else "cpu",
+    "device": "cuda" if torch.cuda.is_available() else "cpu",
     "num_workers": 2,
     "random_seed": 2025
 }
