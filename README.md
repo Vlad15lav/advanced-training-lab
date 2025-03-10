@@ -3,7 +3,7 @@
 ⚡ **PyTorch Lightning — революция или просто удобный синтаксический сахар?**  
 Этот репозиторий поможет вам разобраться на практике! 
 
-<center><img src="images/pytorch_versus.webp"></center>
+<center><img src="images/repo-preview.png"></center>
 <center>DALLE 3 о противостоянии PyTorch и Lightning</center>
 
 ## 📌 Описание  
