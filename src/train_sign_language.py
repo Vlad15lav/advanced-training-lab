@@ -6,7 +6,11 @@ from models.sign_network import SignConvNetwork
 
 from lightning import seed_everything
 from lightning import Trainer
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.callbacks import (
+    EarlyStopping,
+    ModelCheckpoint,
+    RichProgressBar
+)
 
 
 CONFIG = {
@@ -32,6 +36,9 @@ CONFIG = {
     "early_stopping": True,
     "early_stopping_patience": 5,
     "best_model_name": "sign-language-model",
+
+    # Метрики
+    "f_beta": 1.0,
 
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     "num_workers": 2,
@@ -62,11 +69,11 @@ def train_model(model, dataset, fast_dev_run: bool, config: dict):
             return None
 
     # Настраиваем EarlyStopping и автосохранение лучшей модели
-    callback_list = []
+    callback_list = [RichProgressBar()]
     if config["early_stopping"]:
         callback_list.append(
             EarlyStopping(
-                monitor="valid/F1-Score",
+                monitor="valid/f_beta",
                 mode="max",
                 patience=config["early_stopping_patience"]
             )
@@ -76,7 +83,7 @@ def train_model(model, dataset, fast_dev_run: bool, config: dict):
         callback_list.append(
             ModelCheckpoint(
                 save_top_k=1,
-                monitor="valid/F1-Score",
+                monitor="valid/f_beta",
                 mode="max",
                 dirpath="../models/",
                 filename=config["best_model_name"],

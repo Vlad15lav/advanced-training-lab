@@ -1,10 +1,10 @@
-import torch
+import torchmetrics as tm
 
 from lightning import LightningModule
 
 from torch import nn
 from torch.optim import AdamW, lr_scheduler
-from sklearn.metrics import f1_score
+from test.metrics import FalseDiscoveryRate
 
 
 class SignConvNetwork(LightningModule):
@@ -20,9 +20,10 @@ class SignConvNetwork(LightningModule):
         super(SignConvNetwork, self).__init__()
 
         self.config = config
-        self.stride = config["stride"]
-        self.dilation = config["dilation"]
+        self.stride = config.get("stride", 1)
+        self.dilation = config.get("dilation", 1)
         self.n_classes = config["n_classes"]
+        self.f_beta = config.get("f_beta", 1.0)
 
         self.block1 = nn.Sequential(
             # (batch, 1, 28, 28)
@@ -65,9 +66,32 @@ class SignConvNetwork(LightningModule):
         self.lin2 = nn.Linear(100, self.n_classes)
         # (batch, 25)
 
+        self.softmax = nn.Softmax(dim=1)
         self.ce_loss = nn.CrossEntropyLoss()
-        self.all_step_preds = []
-        self.all_step_labels = []
+
+        # F-beta Score
+        self.train_f_beta = tm.FBetaScore(
+            task="multiclass",
+            num_classes=self.n_classes,
+            beta=self.f_beta
+        )
+        self.valid_f_beta = tm.FBetaScore(
+            task="multiclass",
+            num_classes=self.n_classes,
+            beta=self.f_beta
+        )
+        # ROC-AUC
+        self.train_roc_auc = tm.AUROC(
+            task="multiclass",
+            num_classes=self.n_classes
+        )
+        self.valid_roc_auc = tm.AUROC(
+            task="multiclass",
+            num_classes=self.n_classes
+        )
+        # Custom False Discovery Rate
+        self.train_fdr = FalseDiscoveryRate(num_classes=self.n_classes)
+        self.valid_fdr = FalseDiscoveryRate(num_classes=self.n_classes)
 
     def forward(self, x):
         """Выполняет forward-pass для заданного входного тензора x.
@@ -89,7 +113,7 @@ class SignConvNetwork(LightningModule):
         return x
 
     def basic_step(self, batch, batch_idx, step: str):
-        """Выполняет шаг обучения/валидации/тестирования
+        """Выполняет шаг обучения/валидации
 
         Args:
             batch (tuple): images (torch.tensor) и labels (torch.tensor)
@@ -103,65 +127,52 @@ class SignConvNetwork(LightningModule):
         logits = self(images)
 
         loss = self.ce_loss(logits, labels)
-        loss_dict = {
-            f"{step}/loss": loss
-        }
 
-        self.log_dict(loss_dict, prog_bar=True)
-        self.all_step_preds.append(logits.argmax(dim=1))
-        self.all_step_labels.append(labels)
-        return loss_dict
+        if step == "train":
+            f_beta_score = self.train_f_beta(logits, labels)
+            roc_auc_score = self.train_roc_auc(logits, labels)
+            fdr_score = self.train_fdr(logits, labels)
+        elif step == "valid":
+            f_beta_score = self.valid_f_beta(logits, labels)
+            roc_auc_score = self.valid_roc_auc(logits, labels)
+            fdr_score = self.valid_fdr(logits, labels)
+
+        metrics = {
+            f"{step}/loss": loss,
+            f"{step}/f_beta": f_beta_score,
+            f"{step}/roc_auc": roc_auc_score,
+            f"{step}/fdr": fdr_score
+        }
+        self.log_dict(
+            metrics,
+            prog_bar=True,
+            on_epoch=True,
+            on_step=(step == "train")
+        )
+
+        return metrics
 
     def training_step(self, batch, batch_idx):
         """Выполняет шаг обучения"""
-        loss_dict = self.basic_step(batch, batch_idx, "train")
-        return loss_dict["train/loss"]
+        metrics = self.basic_step(batch, batch_idx, "train")
+        return metrics["train/loss"]
 
     def validation_step(self, batch, batch_idx):
         """Выполняет шаг валидации"""
-        loss_dict = self.basic_step(batch, batch_idx, "valid")
-        return loss_dict["valid/loss"]
+        metrics = self.basic_step(batch, batch_idx, "valid")
+        return metrics["valid/loss"]
 
     def test_step(self, batch, batch_idx):
         """Выполняет шаг тестирования"""
-        loss_dict = self.basic_step(batch, batch_idx, "test")
-        return loss_dict["test/loss"]
-
-    def epoche_metric(self, stage: str):
-        """Вычисляет метрику F1-Score для эпохи на
-        тренировочной/валидационной/тестовой выборке
-
-        Args:
-            stage (str): тип множества ('train', 'valid', 'test')
-        """
-        preds = torch.cat(self.all_step_preds).cpu().numpy()
-        labels = torch.cat(self.all_step_labels).cpu().numpy()
-
-        self.log(
-            name=f"{stage}/F1-Score",
-            value=f1_score(labels, preds, average="macro"),
-            prog_bar=True
-        )
-        self.all_step_preds.clear()
-        self.all_step_labels.clear()
-
-    def on_training_epoch_end(self):
-        """Вызывается в конце каждой эпохи обучения.
-        Вычисляет метрику F1-Score для обучающей выборки и логирует её.
-        """
-        self.epoche_metric("train")
-
-    def on_validation_epoch_end(self):
-        """Вызывается в конце каждой эпохи валидации.
-        Вычисляет метрику F1-Score для валидационной выборки и логирует её.
-        """
-        self.epoche_metric("valid")
+        metrics = self.basic_step(batch, batch_idx, "test")
+        return metrics["test/loss"]
 
     def configure_optimizers(self):
         """Конфигурирует оптимизатор и планировщик обучения.
 
-        Возвращает словарь, содержащий оптимизатор AdamW и планировщик CosineAnnealingLR,
-        а также параметры для планировщика (мониторинг метрики, интервал и частоту)
+        Возвращает словарь, содержащий оптимизатор AdamW
+        и планировщик CosineAnnealingLR, а также параметры
+        для планировщика (мониторинг метрики, интервал и частоту)
         """
         optimizer = AdamW(
             self.parameters(),
@@ -193,7 +204,8 @@ if __name__ == "__main__":
         "num_workers": 0,
         "lr": 1e-3,
         "weight_decay": 1e-5,
-        "T_max": 1
+        "T_max": 1,
+        "f_beta": 1
     }
 
     model = SignConvNetwork(config=config)
