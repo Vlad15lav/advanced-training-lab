@@ -5,7 +5,7 @@ from torchmetrics import Metric
 
 class FalseDiscoveryRate(Metric):
     def __init__(self, num_classes: int, **kwargs):
-        """Кастомная метрика False Disvery Rate
+        """Кастомная метрика False Discovery Rate
 
         FP - False Positive
         TP - True Positive
@@ -57,11 +57,11 @@ class FalseDiscoveryRate(Metric):
 
     def compute(self):
         """
-        Вычисляет метрику False Discovery Rate (FDR) как среднее арифметическое
-        FDR по всем классам.
+        Вычисляет метрику False Discovery Rate (FDR)
+        как среднее арифметическое FDR по всем классам.
 
-        FDR - это метрика, описывающая долю ложноположительных из общего числа
-        положительных примеров.
+        FDR - это метрика, описывающая долю
+        ложноположительных из общего числа положительных примеров.
 
         Returns:
             torch.Tensor: FDR, средняя метрика по всем классам
