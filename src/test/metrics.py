@@ -40,15 +40,15 @@ class FalseDiscoveryRate(Metric):
 
         pred_classes = torch.argmax(preds, dim=1)
 
-        true_positives = (pred_classes == target).to(torch.int32)
-        false_positives = (pred_classes != target).to(torch.int32)
+        true_positives_mask = (pred_classes == target)
+        false_positives_mask = (pred_classes != target)
 
         tp_per_class = torch.bincount(
-            target[true_positives == 1],
+            target[true_positives_mask],
             minlength=self.num_classes
         )
         fp_per_class = torch.bincount(
-            pred_classes[false_positives == 1],
+            pred_classes[false_positives_mask],
             minlength=self.num_classes
         )
 
@@ -66,7 +66,7 @@ class FalseDiscoveryRate(Metric):
         Returns:
             torch.Tensor: FDR, средняя метрика по всем классам
         """
-        positive_count = self.fp_per_class + self.fp_per_class
+        positive_count = self.fp_per_class + self.tp_per_class
 
         # Отладка для случая, когда FP + TP == 0
         zero_div_mask = positive_count == 0
