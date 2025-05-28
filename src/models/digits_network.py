@@ -165,10 +165,10 @@ class DigitsGeneratorNetwork(LightningModule):
         }
 
         self.clearml_logger.report_scalar(
-            "Generated Loss", "Gen/loss", errD.item(), self.global_step
+            "Generated Loss", "Gen/loss", errG.item(), self.global_step
         )
         self.clearml_logger.report_scalar(
-            "Discriminator Loss", "Dis/loss", errG.item(), self.global_step
+            "Discriminator Loss", "Dis/loss", errD.item(), self.global_step
         )
         self.clearml_logger.report_scalar(
             "Discriminator Probability", "Dis/real", D_x, self.global_step
