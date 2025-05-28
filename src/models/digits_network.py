@@ -202,7 +202,7 @@ class DigitsGeneratorNetwork(LightningModule):
         """
         if self.clearml_logger is None or batch_idx != 0:
             return
-        if (self.current_epoch + 1) % self.config["debug_samples_epoch"] != 0:
+        if self.current_epoch % self.config["debug_samples_epoch"] != 0:
             return
 
         transforms = ToPILImage()
