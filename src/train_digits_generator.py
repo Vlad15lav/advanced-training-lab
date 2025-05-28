@@ -18,9 +18,9 @@ from lightning.pytorch.callbacks import (
 
 CONFIG = {
     # Датасет/аугментация
-    "normalize_mean": 0.1307,
-    "normalize_std": 0.3081,
-    "valid_size": 0.05,
+    "normalize_mean": 0.5,
+    "normalize_std": 0.5,
+    "valid_size": 0,
     "random_state_split": 42,
     "batch_size": 64,
 
@@ -43,7 +43,7 @@ CONFIG = {
 
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     "num_workers": 2,
-    "random_seed": 2025
+    "random_seed": 2020
 }
 
 
@@ -71,11 +71,13 @@ def train_model(model, dataset, config: dict):
         callback_list.append(
             ModelCheckpoint(
                 save_top_k=1,
+                save_last=True,
                 monitor="Gen/loss",
                 mode="min",
                 dirpath="../models/",
                 filename=config["best_model_name"],
-                save_weights_only=True
+                save_weights_only=True,
+                enable_version_counter=False
             )
         )
 

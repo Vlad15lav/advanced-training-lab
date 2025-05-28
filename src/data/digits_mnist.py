@@ -69,7 +69,7 @@ class DigitsMnistModule(LightningDataModule):
                 transform=transforms
             )
 
-    def _make_dataloader(self, dataset):
+    def _make_dataloader(self, dataset, shuffle=False):
         """
         Создает DataLoader из датасета
 
@@ -83,13 +83,14 @@ class DigitsMnistModule(LightningDataModule):
             dataset,
             batch_size=self.config["batch_size"],
             num_workers=self.config["num_workers"],
+            shuffle=shuffle,
             pin_memory=True,
             persistent_workers=self.config["num_workers"] > 0
         )
 
     def train_dataloader(self):
         """Создает DataLoader для обучения"""
-        return self._make_dataloader(self.train)
+        return self._make_dataloader(self.train, shuffle=True)
 
     def val_dataloader(self):
         """Создает DataLoader для валидации"""
@@ -122,4 +123,6 @@ if __name__ == "__main__":
 
     for X, y in dataset.train_dataloader():
         print(X.shape, y.shape)
+        print(X)
+        print(y)
         break

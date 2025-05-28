@@ -103,24 +103,14 @@ class DigitsGeneratorNetwork(LightningModule):
         """
         real_images, _ = batch
         batch_size = real_images.size(0)
-        real_labels = torch.full(
-            (batch_size,),
-            1.0,
-            dtype=torch.float,
-            device=self.config["device"]
-        )
-        fake_labels = torch.full(
-            (batch_size,),
-            0.0,
-            dtype=torch.float,
-            device=self.config["device"]
-        )
+        real_labels = torch.ones(batch_size, device=self.config["device"])
+        fake_labels = torch.zeros(batch_size, device=self.config["device"])
 
         optimizer_g, optimizer_d = self.optimizers()
 
         # Обновляем дискриминатор
         self.toggle_optimizer(optimizer_d)
-        self.disc_model.zero_grad()
+        optimizer_d.zero_grad()
         output = self.disc_model(real_images)
 
         ## Обучение на реальных изображениях
@@ -134,29 +124,23 @@ class DigitsGeneratorNetwork(LightningModule):
             self.noise_dim,
             device=self.config["device"]
         )
-
-        fake_images = self(noise)
+        fake_images = self.gen_model(noise)
         output = self.disc_model(fake_images.detach())
+
         errD_fake = self.bce_loss(output, fake_labels)
         self.manual_backward(errD_fake)
 
-        errD = errD_real + errD_fake
         D_G_z1 = output.mean().item()
+        errD = errD_real + errD_fake
 
         optimizer_d.step()
         self.untoggle_optimizer(optimizer_d)
 
         # Обновляем генератор
         self.toggle_optimizer(optimizer_g)
-        self.zero_grad()
+        optimizer_g.zero_grad()
 
-        noise = torch.randn(
-            batch_size,
-            self.noise_dim,
-            device=self.config["device"]
-        )
-        fake_images = self(noise)
-        output = self.disc_model(fake_images)
+        output = self.disc_model(self.gen_model(noise))
         errG = self.bce_loss(output, real_labels)
         self.manual_backward(errG)
         D_G_z2 = output.mean().item()
@@ -174,9 +158,14 @@ class DigitsGeneratorNetwork(LightningModule):
         }
 
         for metric, value in metrics.items():
-            self.clearml_logger.report_scalar(
-                metric, "BCE", value, self.global_step
-            )
+            if "Gen/loss" == metric:
+                self.clearml_logger.report_scalar(
+                    "Generated Loss", metric, value, self.global_step
+                )
+            else:
+                self.clearml_logger.report_scalar(
+                    "Discriminator Loss", metric, value, self.global_step
+                )
 
         self.log_dict(
             metrics,
@@ -185,10 +174,11 @@ class DigitsGeneratorNetwork(LightningModule):
             on_step=True
         )
 
-    def on_train_epoch_end(self):
+    def validation_step(self, batch, batch_idx):  # on_train_epoch_end
         if self.clearml_logger is None:
             return
-
+        if batch_idx != 0:
+            return
         if (self.current_epoch + 1) % self.config["debug_samples_epoch"] != 0:
             return
 
@@ -216,13 +206,13 @@ class DigitsGeneratorNetwork(LightningModule):
         optimizer_g = AdamW(
             self.gen_model.parameters(),
             lr=self.config["lr"],
-            weight_decay=self.config["weight_decay"],
+            # weight_decay=self.config["weight_decay"],
             betas=(self.config["b1"], self.config["b2"])
         )
         optimizer_d = AdamW(
             self.disc_model.parameters(),
             lr=self.config["lr"],
-            weight_decay=self.config["weight_decay"],
+            # weight_decay=self.config["weight_decay"],
             betas=(self.config["b1"], self.config["b2"])
         )
 
