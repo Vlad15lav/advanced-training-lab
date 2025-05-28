@@ -216,13 +216,13 @@ class DigitsGeneratorNetwork(LightningModule):
         optimizer_g = AdamW(
             self.gen_model.parameters(),
             lr=self.config["lr"],
-            # weight_decay=self.config["weight_decay"],
+            weight_decay=self.config["weight_decay"],
             betas=(self.config["b1"], self.config["b2"])
         )
         optimizer_d = AdamW(
             self.disc_model.parameters(),
             lr=self.config["lr"],
-            # weight_decay=self.config["weight_decay"],
+            weight_decay=self.config["weight_decay"],
             betas=(self.config["b1"], self.config["b2"])
         )
 
@@ -235,7 +235,7 @@ if __name__ == "__main__":
         "batch_size": 1,
         "num_workers": 0,
         "lr": 2e-4,
-        "weight_decay": "0",
+        "weight_decay": 0,
         "b1": 0.5,
         "b2": 0.999,
         "debug_samples": 64
