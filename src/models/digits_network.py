@@ -10,6 +10,11 @@ from torchvision.transforms import ToPILImage
 # Определение генератора
 class Generator(nn.Module):
     def __init__(self, noise_dim):
+        """Инициализирует генератор
+
+        Args:
+            noise_dim (int): размерность вектора шума
+        """
         super(Generator, self).__init__()
         self.main = nn.Sequential(
             # Вход: вектор шума размера noise_dim
@@ -37,6 +42,8 @@ class Generator(nn.Module):
 # Определение дискриминатора
 class Discriminator(nn.Module):
     def __init__(self):
+        """Инициализирует дискриминатор
+        """
         super(Discriminator, self).__init__()
         self.main = nn.Sequential(
             # Вход: изображение (1, 28, 28)
@@ -187,6 +194,12 @@ class DigitsGeneratorNetwork(LightningModule):
         )
 
     def validation_step(self, batch, batch_idx):
+        """Шаг валидации: генерирует debug-изображения
+
+        Args:
+            batch (tuple): images (torch.tensor) и labels (torch.tensor)
+            batch_idx (int): индекс текущего шага
+        """
         if self.clearml_logger is None or batch_idx != 0:
             return
         if (self.current_epoch + 1) % self.config["debug_samples_epoch"] != 0:

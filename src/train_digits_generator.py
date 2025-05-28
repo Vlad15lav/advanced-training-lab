@@ -35,7 +35,7 @@ CONFIG = {
     "b2": 0.999,
     "log_every_n_steps": 1,
     "debug_samples_epoch": 1,
-    "debug_samples": 10,
+    "debug_samples": 32,
     "best_model": True,
     "early_stopping": False,
     "early_stopping_patience": 5,

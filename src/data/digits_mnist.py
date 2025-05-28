@@ -77,8 +77,7 @@ class DigitsMnistModule(LightningDataModule):
             )
 
     def _make_dataloader(self, dataset, shuffle=False):
-        """
-        Создает DataLoader из датасета
+        """Создает DataLoader из датасета
 
         Args:
             dataset (Digits MNIST): датасет
