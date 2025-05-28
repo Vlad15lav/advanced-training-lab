@@ -125,6 +125,7 @@ def main(epoch: int, debug_samples_epoch: int):
         name="GAN Config"
     )
 
+    # Обучение модели
     dataset = DigitsMnistModule(config=CONFIG)
     print("Датасет подготовлен!")
     model = DigitsGeneratorNetwork(config=CONFIG, task=task)
