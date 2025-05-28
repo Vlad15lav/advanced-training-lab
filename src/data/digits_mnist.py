@@ -56,11 +56,18 @@ class DigitsMnistModule(LightningDataModule):
                 transform=transforms
             )
 
-            self.train, self.val = train_test_split(
-                dataset,
-                test_size=self.config["valid_size"],
-                random_state=self.config["random_state_split"]
-            )
+            if self.config["valid_size"] > 0:
+                self.train, self.val = train_test_split(
+                    dataset,
+                    test_size=self.config["valid_size"],
+                    random_state=self.config["random_state_split"]
+                )
+            else:
+                self.train = dataset
+                _, self.val = train_test_split(
+                    dataset,
+                    test_size=1
+                )
         else:
             self.test = MNIST(
                 root=DATA_DIR,

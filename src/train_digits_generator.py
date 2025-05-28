@@ -43,7 +43,7 @@ CONFIG = {
 
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     "num_workers": 2,
-    "random_seed": 2020
+    "random_seed": 2025
 }
 
 

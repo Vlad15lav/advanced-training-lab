@@ -157,15 +157,27 @@ class DigitsGeneratorNetwork(LightningModule):
             "Dis-after/fake": D_G_z2
         }
 
-        for metric, value in metrics.items():
-            if "Gen/loss" == metric:
-                self.clearml_logger.report_scalar(
-                    "Generated Loss", metric, value, self.global_step
-                )
-            else:
-                self.clearml_logger.report_scalar(
-                    "Discriminator Loss", metric, value, self.global_step
-                )
+        self.clearml_logger.report_scalar(
+            "Generated Loss", "Gen/loss", errD.item(), self.global_step
+        )
+        self.clearml_logger.report_scalar(
+            "Discriminator Loss", "Dis/loss", errG.item(), self.global_step
+        )
+        self.clearml_logger.report_scalar(
+            "Discriminator Probability", "Dis/real", D_x, self.global_step
+        )
+        self.clearml_logger.report_scalar(
+            "Discriminator Probability",
+            "Dis-before/fake",
+            D_G_z1,
+            self.global_step
+        )
+        self.clearml_logger.report_scalar(
+            "Discriminator Probability",
+            "Dis-after/fake",
+            D_G_z2,
+            self.global_step
+        )
 
         self.log_dict(
             metrics,
@@ -174,10 +186,8 @@ class DigitsGeneratorNetwork(LightningModule):
             on_step=True
         )
 
-    def validation_step(self, batch, batch_idx):  # on_train_epoch_end
-        if self.clearml_logger is None:
-            return
-        if batch_idx != 0:
+    def validation_step(self, batch, batch_idx):
+        if self.clearml_logger is None or batch_idx != 0:
             return
         if (self.current_epoch + 1) % self.config["debug_samples_epoch"] != 0:
             return
