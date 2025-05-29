@@ -164,26 +164,27 @@ class DigitsGeneratorNetwork(LightningModule):
             "Dis-after/fake": D_G_z2
         }
 
+        global_step = self.global_step // 2
         self.clearml_logger.report_scalar(
-            "Generated Loss", "Gen/loss", errG.item(), self.global_step
+            "Generated Loss", "Gen/loss", errG.item(), global_step
         )
         self.clearml_logger.report_scalar(
-            "Discriminator Loss", "Dis/loss", errD.item(), self.global_step
+            "Discriminator Loss", "Dis/loss", errD.item(), global_step
         )
         self.clearml_logger.report_scalar(
-            "Discriminator Probability", "Dis/real", D_x, self.global_step
+            "Discriminator Probability", "Dis/real", D_x, global_step
         )
         self.clearml_logger.report_scalar(
             "Discriminator Probability",
             "Dis-before/fake",
             D_G_z1,
-            self.global_step
+            global_step
         )
         self.clearml_logger.report_scalar(
             "Discriminator Probability",
             "Dis-after/fake",
             D_G_z2,
-            self.global_step
+            global_step
         )
 
         self.log_dict(
@@ -220,7 +221,7 @@ class DigitsGeneratorNetwork(LightningModule):
             self.clearml_logger.report_image(
                 title="Validation Images",
                 series=f"Generated Digits Sample[{i+1}]",
-                iteration=self.global_step,
+                iteration=self.global_step // 2,
                 image=img
             )
 
