@@ -10,7 +10,7 @@ from torchvision.utils import make_grid, save_image
 CONFIG = {
     # Параметры модели
     "noise_dim": 100,
-    "best_model_name": "digits-generate-model",
+    "best_model_name": "last",
 
     "device": "cuda" if torch.cuda.is_available() else "cpu"
 }
