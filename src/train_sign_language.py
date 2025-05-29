@@ -85,7 +85,7 @@ def train_model(model, dataset, fast_dev_run: bool, config: dict):
                 save_top_k=1,
                 monitor="valid/f_beta",
                 mode="max",
-                dirpath="../models/",
+                dirpath="../weights/",
                 filename=config["best_model_name"],
                 save_weights_only=True
             )
@@ -99,9 +99,7 @@ def train_model(model, dataset, fast_dev_run: bool, config: dict):
         callbacks=callback_list
     )
 
-    print("Тренировка модели...")
     trainer.fit(model, datamodule=dataset)
-    print("Модель обучена! Веса сохранены в advanced-training-lab/models")
 
 
 @click.command()
@@ -114,8 +112,9 @@ def main(fast_dev_run: bool):
     print("Датасет подготовлен!")
     model = SignConvNetwork(config=CONFIG)
     print("Модель создана!")
-
-    train_model(model, dataset, fast_dev_run, CONFIG)
+    print("Тренировка модели...")
+    train_model(model, dataset, CONFIG)
+    print("Модель обучена! Веса сохранены в advanced-training-lab/weights")
 
 
 if __name__ == "__main__":

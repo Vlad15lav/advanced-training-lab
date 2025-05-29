@@ -30,7 +30,7 @@ def main():
 
     dataset.setup("test")
     model = SignConvNetwork.load_from_checkpoint(
-        os.path.join("../models/", CONFIG["best_model_name"] + ".ckpt"),
+        os.path.join("../weights/", CONFIG["best_model_name"] + ".ckpt"),
         config=CONFIG
     )
     print("Веса загружены!")

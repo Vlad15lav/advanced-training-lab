@@ -12,7 +12,8 @@ from lightning import Trainer
 from lightning.pytorch.callbacks import (
     EarlyStopping,
     ModelCheckpoint,
-    RichProgressBar
+    RichProgressBar,
+    TQDMProgressBar
 )
 
 
@@ -35,12 +36,14 @@ CONFIG = {
     "b2": 0.999,
     "log_every_n_steps": 1,
     "debug_samples_epoch": 1,
-    "debug_samples": 32,
+    "debug_samples": 16,
     "best_model": True,
     "early_stopping": False,
     "early_stopping_patience": 5,
     "best_model_name": "digits-generate-model",
 
+    "progress_bar": "rich",  # (tqdm, rich, None)
+    "refresh_rate_bar": 1,
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     "num_workers": 2,
     "random_seed": 2025
@@ -57,7 +60,16 @@ def train_model(model, dataset, config: dict):
         config (dict): словарь с параметрами обучения
     """
     # Настраиваем EarlyStopping и автосохранение лучшей модели
-    callback_list = [RichProgressBar()]
+    callback_list = []
+    if config["progress_bar"] == "tqdm":
+        callback_list.append(
+            TQDMProgressBar(refresh_rate=config["refresh_rate_bar"])
+        )
+    elif config["progress_bar"] == "rich":
+        callback_list.append(
+            RichProgressBar(refresh_rate=config["refresh_rate_bar"])
+        )
+
     if config["early_stopping"]:
         callback_list.append(
             EarlyStopping(
@@ -74,7 +86,7 @@ def train_model(model, dataset, config: dict):
                 save_last=True,
                 monitor="Gen/loss",
                 mode="min",
-                dirpath="../models/",
+                dirpath="../weights/",
                 filename=config["best_model_name"],
                 save_weights_only=True,
                 enable_version_counter=False
@@ -89,9 +101,7 @@ def train_model(model, dataset, config: dict):
         callbacks=callback_list
     )
 
-    print("Тренировка модели...")
     trainer.fit(model, datamodule=dataset)
-    print("Модель обучена! Веса сохранены в advanced-training-lab/models")
 
 
 @click.command()
@@ -130,8 +140,10 @@ def main(epoch: int, debug_samples_epoch: int):
     print("Датасет подготовлен!")
     model = DigitsGeneratorNetwork(config=CONFIG, task=task)
     print("Модель создана!")
-
+    print("Тренировка модели...")
     train_model(model, dataset, CONFIG)
+    print("Модель обучена! Веса сохранены в advanced-training-lab/weights")
+
     task.close()
 
 

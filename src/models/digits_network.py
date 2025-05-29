@@ -190,7 +190,8 @@ class DigitsGeneratorNetwork(LightningModule):
             metrics,
             prog_bar=True,
             on_epoch=True,
-            on_step=True
+            on_step=False,
+            logger=False
         )
 
     def validation_step(self, batch, batch_idx):
