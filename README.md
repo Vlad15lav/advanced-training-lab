@@ -62,7 +62,7 @@ python demo_sign_language.py
 ```
 5️⃣.2️⃣ Для модели генерации рукописных цифр.
 ```bash
-python .\demo_digits_generator.py --samples 9 --output_path ./generated_digits_grid.png
+python demo_digits_generator.py --samples 9 --output_path ./generated_digits_grid.png
 ```
 
 ## 🔗 Полезные ссылки
